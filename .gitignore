@@ -1,0 +1,18 @@
+# Виртуальное окружение — НИКОГДА в git
+venv/
+.venv/
+
+# Кэши Python
+__pycache__/
+*.pyc
+
+# Секреты
+.env
+
+# Настройки редакторов
+.vscode/
+.idea/
+
+# ОС-специфичное
+.DS_Store
+Thumbs.db
