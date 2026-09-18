@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+import random
 
 app = Flask(__name__)
 
@@ -32,6 +33,31 @@ def get_menu():
             result = [dish for dish in result if dish["price"] <= max_price]
 
         return jsonify(result)
+
+        sort = request.args.get("sorted")
+        if sort is not None:
+            if sort == "cheapest":
+                max = 1000000
+                dish_cheap = {}
+                for dish in menu:
+                    if max >= dish["price"]:
+                        max = dish["price"]
+                        dish_cheap = dish
+                return dish_cheap
+            elif sort == "expensive":
+                min = 0
+                dish_exp = {}
+                for dish in menu:
+                    if min <= dish["price"]:
+                        min = dish["price"]
+                        dish_exp = dish
+                return dish_exp
+            elif sort == "random":
+                rand = random.raьdint(0, len(menu)-1)
+                return menu[rand]
+            else:
+                return {"error": "'sorted' parameter is wrong"}, 404
+
     else:
         new_dish = request.get_json()
         if new_dish.get("name") is None:
@@ -115,6 +141,32 @@ def toggle(id):
             menu[id-1]["available"] = not dish["available"]
         else:
             return {"error": "Блюдо с таким id не найдено"}, 404
+
+@app.route("/menu/sorted")
+def sorted_menu():
+    sort = request.args.get("show")
+    if sort is not None:
+        if sort == "cheapest":
+            max = 1000000
+            dish_cheap = {}
+            for dish in menu:
+                if max >= dish["price"]:
+                    max = dish["price"]
+                    dish_cheap = dish
+            return dish_cheap
+        elif sort == "expensive":
+            min = 0
+            dish_exp = {}
+            for dish in menu:
+                if min <= dish["price"]:
+                    min = dish["price"]
+                    dish_exp = dish
+            return dish_exp
+        elif sort == "random":
+            rand = random.raьdint(0, len(menu)-1)
+            return menu[rand]
+        else:
+            return {"error": "'show' parameter is wrong"}, 404
 
 
 if __name__ == "__main__":
