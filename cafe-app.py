@@ -124,12 +124,20 @@ def get_menu_by_id(id):
 #         if patched.get("price") is not None:
 #             menu[id-1]["price"] = patched.get("price")
 #         return f"Dish has been patched", 200
-#     else:
-#         if id <= len(menu):
-#             del menu[id-1]
-#             return {"status": "deleted", "id": id}
-#         else:
-#             return 404
+    else:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("DELETE FROM dishes WHERE id = ?", (id,))
+
+        conn.commit()
+
+        if cursor.rowcount == 0:
+            conn.close()
+            return jsonify({"error": "Dish not found"}), 404
+        else:
+            conn.close()
+            return jsonify({"status": "deleted", "id": id})
 
 
 # @app.route("/menu/category/<name>")
