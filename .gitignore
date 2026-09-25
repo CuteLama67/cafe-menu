@@ -16,3 +16,7 @@ __pycache__/
 # ОС-специфичное
 .DS_Store
 Thumbs.db
+
+#База данных
+menu.db
+*.db
