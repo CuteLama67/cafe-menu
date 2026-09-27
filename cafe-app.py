@@ -19,44 +19,43 @@ def get_menu():
         
         cursor.execute("SELECT * FROM dishes")
         rows = cursor.fetchall()
+        query_param = "SELECT * FROM dishes"
+        connections = []
+        parameters = []
 
-        conn.close()
+        category = request.args.get("category")    
+        if category:
+            connections.append("category = ?")
+            parameters.append(category)
+
+        max_price = request.args.get("max_price")
+        if max_price:
+            connections.append("price <= ?")
+            parameters.append(max_price)
+
+        available = request.args.get("available")
+        if available:
+            connections.append("available = ?")
+            parameters.append(available)
+
+        if connections:
+            query_param += " WHERE " + " AND ".join(connections)
+            cursor.execute(query_param, tuple(parameters))
+            rows = cursor.fetchall()
 
         dishes = []
         for row in rows:
             dishes.append({
-                "id": row["id"],
-                "name": row["name"],
-                "category": row["category"],
-                "price": row["price"],
-                "available": bool(row["available"])
-            })
+                        "id": row["id"],
+                        "name": row["name"],
+                        "category": row["category"],
+                        "price": row["price"],
+                        "available": bool(row["available"])
+                        })
 
+        conn.close()
         return jsonify(dishes)
 
-    #     sort = request.args.get("sorted")
-    #     if sort is not None:
-    #         if sort == "cheapest":
-    #             max = 1000000
-    #             dish_cheap = {}
-    #             for dish in menu:
-    #                 if max >= dish["price"]:
-    #                     max = dish["price"]
-    #                     dish_cheap = dish
-    #             return dish_cheap
-    #         elif sort == "expensive":
-    #             min = 0
-    #             dish_exp = {}
-    #             for dish in menu:
-    #                 if min <= dish["price"]:
-    #                     min = dish["price"]
-    #                     dish_exp = dish
-    #             return dish_exp
-    #         elif sort == "random":
-    #             rand = random.raьdint(0, len(menu)-1)
-    #             return menu[rand]
-    #         else:
-    #             return {"error": "'sorted' parameter is wrong"}, 404
 
     else:
         data = request.get_json()
@@ -140,13 +139,7 @@ def get_menu_by_id(id):
             return jsonify({"status": "deleted", "id": id})
 
 
-# @app.route("/menu/category/<name>")
-# def get_category(name):
-#     result = []
-#     for dish in menu:
-#         if dish["category"] == name:
-#             result.append(dish)
-#     return result
+
 
 # @app.route("/menu/stats")
 # def get_stats():
