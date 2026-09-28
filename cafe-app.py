@@ -94,17 +94,15 @@ def get_menu():
 
 @app.route("/menu/<int:id>", methods = ["GET", "PATCH", "DELETE"])
 def get_menu_by_id(id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM dishes WHERE id = ?", (id,))
+    dish = {}
+    row = cursor.fetchone()
+    if row is None:
+        return jsonify({"error": "Dish not found"}), 404
     if request.method == "GET":
-            conn = get_db_connection()
-            cursor = conn.cursor()
-
-            cursor.execute("SELECT * FROM dishes WHERE id = ?", (id,))
-            row = cursor.fetchone()
-
             conn.close()
-
-            if row is None:
-                return jsonify({"error": "Dish not found"}), 404
 
             dish = {
                 "id": row["id"],
@@ -114,15 +112,35 @@ def get_menu_by_id(id):
                 "available": bool(row["available"])
             }
             return jsonify(dish)
-#     elif request.method == "PATCH":
-#         patched = request.get_json()
-#         if patched.get("name") is not None:
-#             menu[id-1]["name"] = patched.get("name")
-#         if patched.get("category") is not None:
-#             menu[id-1]["category"] = patched.get("category")
-#         if patched.get("price") is not None:
-#             menu[id-1]["price"] = patched.get("price")
-#         return f"Dish has been patched", 200
+    
+    elif request.method == "PATCH":
+        query_param = "UPDATE dishes SET "
+        data = request.get_json()
+        connections = []
+        parameters = []
+        if "name" in data:
+            connections.append("name = ?")
+            parameters.append(data["name"])
+        
+        if "category" in data:
+            connections.append("category = ?")
+            parameters.append(data["category"])
+        
+        if "price" in data:
+            connections.append("price = ?")
+            parameters.append(data["price"])
+        
+        if "available" in data:
+            connections.append("available = ?")
+            parameters.append(data["available"])
+        parameters.append(id)
+        if connections:
+            query_param += " , ".join(connections) + " WHERE id = ? "
+            cursor.execute(query_param, tuple(parameters))
+            conn.commit()
+            conn.close()
+        return f"Dish has been patched"
+
     else:
         conn = get_db_connection()
         cursor = conn.cursor()
